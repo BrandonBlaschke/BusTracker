@@ -1,6 +1,6 @@
 const STOP_ID = "8231";
 
-const stopCoords = [-122.2818, 47.5490];
+const stopCoords = [-122.276947, 47.549225];
 
 const map = new maplibregl.Map({
     container: "map",
@@ -78,32 +78,74 @@ async function loadLiveData() {
     }
 
     try {
+        // clear old markers
+        busMarkers.forEach(marker => marker.remove());
+        busMarkers = []; 
 
+        // Get bus data for stop.
         const arrivalsUrl =
-            `https://api.pugetsound.onebusaway.org/api/where/arrivals-and-departures-for-stop/${STOP_ID}.json?key=${API_KEY}`;
+            `https://api.pugetsound.onebusaway.org/api/where/arrivals-and-departures-for-stop/1_${STOP_ID}.json?key=${API_KEY}`;
 
         const response = await fetch(arrivalsUrl);
 
         const data = await response.json();
 
-        const arrivals =
-            data.data.arrivalsAndDepartures
-            .filter(a => a.routeShortName === "7")
-            .slice(0, 2);
+        console.log("FULL RESPONSE:", data);
 
+        const allArrivals =
+        data?.data?.entry?.arrivalsAndDepartures || [];
+
+        const arrivals = allArrivals
+        .filter(a => a.routeShortName === "7")
+        .slice(0, 2);
+
+        // Update arrival times.
         if (arrivals.length > 0) {
 
-            document.getElementById("nextBus")
-                .innerText =
-                `Next Bus: ${minutesAway(arrivals[0])} min`;
+            const nextMinutes = minutesAway(arrivals[0]);
+
+            document.getElementById("nextBus").innerText =
+                `${nextMinutes} MIN • ${arrivals[0].tripHeadsign}`;
 
             if (arrivals[1]) {
-                document.getElementById("secondBus")
-                    .innerText =
-                    `Following Bus: ${minutesAway(arrivals[1])} min`;
+                const nextSecondBusMinutes = minutesAway(arrivals[1]);
+                document.getElementById("secondBus").innerText =
+                `${nextSecondBusMinutes} MIN • ${arrivals[1].tripHeadsign}`;
             }
         }
+        
+        const routeBuses =
+        data.data.entry.arrivalsAndDepartures
+            .filter(a => a.routeShortName === "7");
 
+        // Display buses on map
+        routeBuses.forEach(bus => {
+            const pos = bus.tripStatus?.position;
+        
+            if (!pos) return;
+        
+            const busEl = document.createElement("div");
+        
+            busEl.innerHTML = "7";
+        
+            busEl.style.width = "32px";
+            busEl.style.height = "32px";
+            busEl.style.borderRadius = "50%";
+        
+            busEl.style.background = "#FDB71A";
+            busEl.style.color = "black";
+        
+            busEl.style.fontWeight = "bold";
+            busEl.style.display = "flex";
+            busEl.style.alignItems = "center";
+            busEl.style.justifyContent = "center";
+        
+            busEl.style.border = "2px solid black";
+            let marker = new maplibregl.Marker({element: busEl})
+                .setLngLat([pos.lon, pos.lat])
+                .addTo(map);
+            busMarkers.push(marker);
+        });
     } catch (e) {
 
         console.error(e);
