@@ -90,8 +90,6 @@ async function loadLiveData() {
 
         const data = await response.json();
 
-        console.log("FULL RESPONSE:", data);
-
         const allArrivals =
         data?.data?.entry?.arrivalsAndDepartures || [];
 
@@ -128,8 +126,8 @@ async function loadLiveData() {
         
             busEl.innerHTML = "7";
         
-            busEl.style.width = "32px";
-            busEl.style.height = "32px";
+            busEl.style.width = "24px";
+            busEl.style.height = "24px";
             busEl.style.borderRadius = "50%";
         
             busEl.style.background = "#FDB71A";
