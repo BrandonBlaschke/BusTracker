@@ -6,42 +6,30 @@ const map = new maplibregl.Map({
     container: "map",
     style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
     center: stopCoords,
-    zoom: 14
+    zoom: 13
 });
 
 map.addControl(
     new maplibregl.NavigationControl()
 );
 
-map.on("load", () => {
-
-    const routeLine = {
-        type: "Feature",
-        geometry: {
-            type: "LineString",
-            coordinates: [
-                [-122.334, 47.607],
-                [-122.326, 47.595],
-                [-122.317, 47.582],
-                [-122.307, 47.570],
-                [-122.296, 47.560],
-                [-122.282, 47.549]
-            ]
-        }
-    };
+map.on("load", async () => {
+    const routeData = await fetch(
+        "./data/routes/route_7/route7.geojson"
+    ).then(r => r.json());
 
     map.addSource("route7", {
         type: "geojson",
-        data: routeLine
+        data: routeData
     });
-
+    
     map.addLayer({
         id: "route7-line",
         type: "line",
         source: "route7",
         paint: {
-            "line-color": "#FFD100",
-            "line-width": 8
+            "line-color": "#FDB71A",
+            "line-width": 5
         }
     });
 
@@ -65,9 +53,7 @@ let busMarkers = [];
 
 async function loadLiveData() {
 
-    if (
-        API_KEY === "PUT_YOUR_ONEBUSAWAY_KEY_HERE"
-    ) {
+    if (API_KEY === "PUT_YOUR_ONEBUSAWAY_KEY_HERE") {
         document.getElementById("nextBus")
             .innerText = "Next Bus: Add API Key";
 
